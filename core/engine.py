@@ -4,93 +4,191 @@ core/engine.py
 Sentinel Application Engine
 """
 
-from core.container import container
-from core.lifecycle import Service
+from __future__ import annotations
+
+from conversation.response import Response
+
 from core.bootstrap import Bootstrapper
 
 
 class Engine:
+    """
+    Main application engine.
+
+    Owns the dependency container and exposes the public
+    interface used by the rest of Sentinel.
+    """
 
     def __init__(self):
 
-        
-        class Engine:
+        bootstrap = Bootstrapper()
 
-            def __init__(self):
+        self.container = bootstrap.configure()
 
-                bootstrap = Bootstrapper()
+        self.registry = self.resolve("registry")
 
-                self.container = bootstrap.configure()
+        self.pipeline = self.resolve("pipeline")
 
-        self.services = []
-        self.services = []
+        self.running = False
 
-    # ------------------------------------------------
+    # ---------------------------------------------------------
+    # Dependency Resolution
+    # ---------------------------------------------------------
 
-    def register(self, name, service):
+    def resolve(
+        self,
+        name: str,
+    ):
 
-        self.container.register_singleton(name, service)
+        return self.container.resolve(name)
 
-        self.services.append(service)
-
-    # ------------------------------------------------
+    # ---------------------------------------------------------
+    # Lifecycle
+    # ---------------------------------------------------------
 
     def initialize(self):
 
-        print("\n========== INITIALIZING ==========\n")
+        self.registry.initialize()
 
-        for service in self.services:
-
-            print(f"[INIT] {service.name}")
-
-            service.initialize()
-
-            service.initialized = True
-
-        print("\nInitialization Complete\n")
-
-    # ------------------------------------------------
+    # ---------------------------------------------------------
 
     def start(self):
 
-        print("\n========== STARTING ==========\n")
+        if self.running:
+            return
 
-        for service in self.services:
+        self.initialize()
 
-            print(f"[START] {service.name}")
+        self.registry.start()
 
-            service.start()
+        conversation = self.resolve("conversation")
+        conversation.start()
 
-            service.running = True
+        self.running = True
 
-        print("\nSentinel Running\n")
-
-    # ------------------------------------------------
+    # ---------------------------------------------------------
 
     def stop(self):
 
-        print("\n========== STOPPING ==========\n")
+        if not self.running:
+            return
 
-        for service in reversed(self.services):
+        conversation = self.resolve("conversation")
+        conversation.stop()
 
-            print(f"[STOP] {service.name}")
+        self.registry.stop()
 
-            service.stop()
+        self.running = False
 
-            service.running = False
-
-    # ------------------------------------------------
+    # ---------------------------------------------------------
 
     def shutdown(self):
 
-        print("\n========== SHUTDOWN ==========\n")
+        if self.running:
+            self.stop()
 
-        for service in reversed(self.services):
+        self.registry.shutdown()
 
-            print(f"[SHUTDOWN] {service.name}")
+    # ---------------------------------------------------------
+    # Public API
+    # ---------------------------------------------------------
 
-            service.shutdown()
+    def process_text(
+        self,
+        text: str,
+    ) -> Response:
 
-            service.initialized = False
+        if not self.running:
+            raise RuntimeError(
+                "Engine is not running."
+            )
 
-        print("\nSentinel Offline\n")
+        return self.pipeline.process_text(text)
+
+    # ---------------------------------------------------------
+
+    def process_audio(
+        self,
+        audio,
+    ) -> Response:
+
+        if not self.running:
+            raise RuntimeError(
+                "Engine is not running."
+            )
+
+        return self.pipeline.process_audio(audio)
+
+    # ---------------------------------------------------------
+
+    def chat(
+        self,
+        text: str,
+    ) -> Response:
+
+        return self.process_text(text)
+
+    # ---------------------------------------------------------
+    # Convenience Properties
+    # ---------------------------------------------------------
+
+    @property
+    def config(self):
+
+        return self.resolve("config")
+
+    # ---------------------------------------------------------
+
+    @property
+    def logger(self):
+
+        return self.resolve("logger")
+
+    # ---------------------------------------------------------
+
+    @property
+    def event_bus(self):
+
+        return self.resolve("event_bus")
+
+    # ---------------------------------------------------------
+
+    @property
+    def whisper(self):
+
+        return self.resolve("whisper")
+
+    # ---------------------------------------------------------
+
+    @property
+    def speech(self):
+
+        return self.resolve("speech")
+
+    # ---------------------------------------------------------
+
+    @property
+    def llm(self):
+
+        return self.resolve("llm")
+
+    # ---------------------------------------------------------
+
+    @property
+    def conversation(self):
+
+        return self.resolve("conversation")
+
+    # ---------------------------------------------------------
+
+    @property
+    def ai_pipeline(self):
+
+        return self.pipeline
+
+
+#
+# Global engine instance
+#
+
+engine = Engine()

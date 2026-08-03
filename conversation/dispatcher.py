@@ -14,15 +14,26 @@ logger = logging.getLogger(__name__)
 
 class ConversationDispatcher:
 
-    def __init__(self, router=None, llm=None):
+    def __init__(
+        self,
+        router=None,
+        llm=None,
+    ):
         self.router = router
         self.llm = llm
 
-    def dispatch(self, text: str) -> Response:
+    # ---------------------------------------------------------
+
+    def dispatch(
+        self,
+        text: str,
+        history: list | None = None,
+    ) -> Response:
 
         text = text.strip()
 
         if not text:
+
             return Response(
                 text="I didn't hear anything.",
                 success=False,
@@ -33,28 +44,31 @@ class ConversationDispatcher:
 
         route = constants.ROUTER_LLM
 
-        # -----------------------------
+        # -----------------------------------------------------
         # Router
-        # -----------------------------
+        # -----------------------------------------------------
 
         if self.router:
+
             route = self.router.classify(text)
 
-        # -----------------------------
+        # -----------------------------------------------------
         # EXIT
-        # -----------------------------
+        # -----------------------------------------------------
 
         if route == constants.ROUTER_EXIT:
+
             return Response(
                 text="Goodbye!",
                 source="router",
             )
 
-        # -----------------------------
+        # -----------------------------------------------------
         # COMMAND
-        # -----------------------------
+        # -----------------------------------------------------
 
         if route == constants.ROUTER_COMMAND:
+
             return Response(
                 text="COMMAND",
                 source="router",
@@ -64,26 +78,27 @@ class ConversationDispatcher:
                 },
             )
 
-        # -----------------------------
+        # -----------------------------------------------------
         # MEMORY
-        # -----------------------------
+        # -----------------------------------------------------
 
         if route == constants.ROUTER_MEMORY:
+
             return Response(
                 text="Memory not implemented yet.",
                 source="memory",
             )
 
-        # -----------------------------
+        # -----------------------------------------------------
         # LLM
-        # -----------------------------
+        # -----------------------------------------------------
 
         if self.llm:
 
             try:
 
                 answer = self.llm.generate(
-                    history=self.session.history.as_llm_messages(),
+                    history=history or [],
                     user_message=text,
                 )
 

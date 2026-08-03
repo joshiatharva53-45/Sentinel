@@ -1,68 +1,77 @@
 """
 core/logger.py
 
-Central logging service for Sentinel V2.
+Central Logger.
 """
 
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+import sys
 
 
 class Logger:
 
-    def __init__(
-        self,
-        name: str = "Sentinel",
-        log_dir: str = "logs",
-        level: int = logging.INFO,
-    ):
-        self.name = name
-        self.level = level
+    def __init__(self):
 
-        Path(log_dir).mkdir(parents=True, exist_ok=True)
+        self.logger = logging.getLogger("Sentinel")
 
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
+        if not self.logger.handlers:
 
-        # Prevent duplicate handlers
-        if self.logger.handlers:
-            return
+            self.logger.setLevel(logging.INFO)
 
-        formatter = logging.Formatter(
-            "[%(asctime)s] %(levelname)-8s %(name)s: %(message)s",
-            datefmt="%H:%M:%S",
-        )
+            formatter = logging.Formatter(
 
-        # Console Handler
-        console = logging.StreamHandler()
-        console.setFormatter(formatter)
+                "[%(asctime)s] "
 
-        # File Handler
-        logfile = Path(log_dir) / "sentinel.log"
-        file_handler = logging.FileHandler(logfile, encoding="utf-8")
-        file_handler.setFormatter(formatter)
+                "%(levelname)s "
 
-        self.logger.addHandler(console)
-        self.logger.addHandler(file_handler)
+                "%(name)s: "
+
+                "%(message)s",
+
+                "%H:%M:%S",
+
+            )
+
+            console = logging.StreamHandler(sys.stdout)
+
+            console.setFormatter(formatter)
+
+            self.logger.addHandler(console)
 
     # ---------------------------------------------------------
 
-    def debug(self, message: str):
-        self.logger.debug(message)
+    def debug(self, *args, **kwargs):
 
-    def info(self, message: str):
-        self.logger.info(message)
+        self.logger.debug(*args, **kwargs)
 
-    def warning(self, message: str):
-        self.logger.warning(message)
+    # ---------------------------------------------------------
 
-    def error(self, message: str):
-        self.logger.error(message)
+    def info(self, *args, **kwargs):
 
-    def critical(self, message: str):
-        self.logger.critical(message)
+        self.logger.info(*args, **kwargs)
 
-    def exception(self, message: str):
-        self.logger.exception(message)
+    # ---------------------------------------------------------
+
+    def warning(self, *args, **kwargs):
+
+        self.logger.warning(*args, **kwargs)
+
+    # ---------------------------------------------------------
+
+    def error(self, *args, **kwargs):
+
+        self.logger.error(*args, **kwargs)
+
+    # ---------------------------------------------------------
+
+    def exception(self, *args, **kwargs):
+
+        self.logger.exception(*args, **kwargs)
+
+    # ---------------------------------------------------------
+
+    def critical(self, *args, **kwargs):
+
+        self.logger.critical(*args, **kwargs)

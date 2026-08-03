@@ -1,95 +1,60 @@
 """
 conversation/history.py
-
-Stores the active conversation history.
-This is NOT long-term memory.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any
-
-
-@dataclass(slots=True)
-class Message:
-    """
-    Represents one conversation message.
-    """
-
-    role: str
-    content: str
-    timestamp: datetime = field(default_factory=datetime.now)
-    metadata: dict[str, Any] = field(default_factory=dict)
-
 
 class ConversationHistory:
-    """
-    Stores messages for the current conversation only.
-    """
 
-    def __init__(self) -> None:
-        self._messages: list[Message] = []
+    def __init__(self, max_messages: int = 20):
+
+        self.max_messages = max_messages
+
+        self.messages = []
+
+    # ---------------------------------------------------------
 
     def add(
         self,
         role: str,
         content: str,
-        metadata: dict[str, Any] | None = None,
-    ) -> None:
-        """
-        Add a message to history.
-        """
+    ):
 
-        self._messages.append(
-            Message(
-                role=role,
-                content=content,
-                metadata=metadata or {},
-            )
+        self.messages.append(
+            {
+                "role": role,
+                "content": content,
+            }
         )
 
-    def clear(self) -> None:
-        """
-        Remove all messages.
-        """
+        if len(self.messages) > self.max_messages:
 
-        self._messages.clear()
+            self.messages = self.messages[-self.max_messages:]
 
-    def count(self) -> int:
-        """
-        Number of stored messages.
-        """
+    # ---------------------------------------------------------
 
-        return len(self._messages)
+    def clear(self):
 
-    def messages(self) -> list[Message]:
-        """
-        Return a copy of all messages.
-        """
+        self.messages.clear()
 
-        return list(self._messages)
+    # ---------------------------------------------------------
 
-    def last(self) -> Message | None:
-        """
-        Return the most recent message.
-        """
+    def last(self):
 
-        if not self._messages:
+        if not self.messages:
             return None
 
-        return self._messages[-1]
+        return self.messages[-1]
 
-    def as_llm_messages(self) -> list[dict[str, str]]:
-        """
-        Convert history into the standard LLM message format.
-        """
+    # ---------------------------------------------------------
 
-        return [
-            {
-                "role": message.role,
-                "content": message.content,
-            }
-            for message in self._messages
-        ]
+    def as_llm_messages(self):
+
+        return list(self.messages)
+
+    # ---------------------------------------------------------
+
+    def __len__(self):
+
+        return len(self.messages)

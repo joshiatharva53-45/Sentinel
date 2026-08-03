@@ -60,7 +60,10 @@ class ConversationRuntime:
             text,
         )
 
-        response = self.dispatcher.dispatch(text)
+        response = self.dispatcher.dispatch(
+            text=text,
+            history=self.session.history.as_llm_messages(),
+        )
 
         if response.success:
 
@@ -95,4 +98,4 @@ class ConversationRuntime:
         Return conversation history.
         """
 
-        return self.session.history.messages()
+        return self.session.history.as_llm_messages()

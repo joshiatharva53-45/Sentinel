@@ -6,7 +6,7 @@ Central configuration for Sentinel V2.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-
+from llm.config import LLMConfig
 
 # ==========================================================
 # Audio
@@ -76,3 +76,4 @@ class Config:
     whisper: WhisperConfig = field(default_factory=WhisperConfig)
     piper: PiperConfig = field(default_factory=PiperConfig)
     memory: MemoryConfig = field(default_factory=MemoryConfig)
+    llm: LLMConfig = field(default_factory=LLMConfig)

@@ -1,30 +1,33 @@
-from pipeline import AIPipeline
-
-from conversation.manager import ConversationManager
-from speech.speech_manager import SpeechManager
+from core.engine import Engine
 
 
-conversation = ConversationManager()
+def main():
 
-speech = SpeechManager()
+    engine = Engine()
 
-speech.start()
+    engine.initialize()
 
-pipeline = AIPipeline(
-    conversation=conversation,
-    speech=speech,
-)
+    engine.start()
 
-pipeline.process_text(
-    "Introduce yourself."
-)
+    print()
 
-pipeline.process_text(
-    "What is Python?"
-)
+    print("===== SERVICES =====")
 
-pipeline.process_text(
-    "Tell me a joke."
-)
+    print(engine.config)
 
-speech.stop()
+    print(engine.logger)
+
+    print(engine.event_bus)
+
+    print()
+
+    engine.stop()
+
+    engine.shutdown()
+
+    print("Sentinel Core Started Successfully")
+
+
+if __name__ == "__main__":
+
+    main()
